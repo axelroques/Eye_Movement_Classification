@@ -1,12 +1,13 @@
 
 from ivt import IVT
+
 import numpy as np
 
 
 def Viterbi(A, B, P, O):
     """
     Log implementation of the Viterbi algorithm. In the log implementation,
-    all probability multiplications are replaced by sums.Based on: 
+    all probability multiplications are replaced by sums.Based on:
     https://www.audiolabs-erlangen.de/resources/MIR/FMP/C5/C5S3_Viterbi.html
 
     Inputs:
@@ -17,8 +18,8 @@ def Viterbi(A, B, P, O):
         - O = Observations (1 x N)
 
     Outputs:
-        - D = Accumulated probability matrix (I x N). D[i, n] is the 
-            highest probability along a single state sequence (s_1,…,s_n) 
+        - D = Accumulated probability matrix (I x N). D[i, n] is the
+            highest probability along a single state sequence (s_1,…,s_n)
             that accounts for the first n observations and ends in state
             s_n=alpha_i
         - S = Optimal state sequence (1 x N)
@@ -140,7 +141,9 @@ def Baum_Welch(A, B, P, O, n_iter=4):
             for i in range(I):
                 numerator = alpha[t, i] * a[i, :] * \
                     b[:, O[t+1]].T * beta[t+1, :].T
-                Xi[i, :, t] = numerator / denominator
+                Xi[i, :, t] = np.divide(numerator, denominator,
+                                        out=np.zeros_like(numerator),
+                                        where=denominator != 0)
 
         # Computing γᵢ(t) values
         gamma = np.sum(Xi, axis=1)
@@ -150,7 +153,9 @@ def Baum_Welch(A, B, P, O, n_iter=4):
         ###################
 
         # Estimation of a
-        a = np.sum(Xi, 2) / np.sum(gamma, axis=1).reshape((-1, 1))
+        a = np.divide(np.sum(Xi, 2), np.sum(gamma, axis=1).reshape((-1, 1)),
+                      out=np.zeros_like(np.sum(Xi, 2)),
+                      where=np.sum(gamma, axis=1).reshape((-1, 1)) != 0)
 
         # Add additional T'th element in gamma
         gamma = np.hstack(
@@ -161,7 +166,9 @@ def Baum_Welch(A, B, P, O, n_iter=4):
         denominator = np.sum(gamma, axis=1)
         for l in range(K):
             b[:, l] = np.sum(gamma[:, O == l], axis=1)
-        b = np.divide(b, denominator.reshape((-1, 1)))
+        b = np.divide(b, denominator.reshape((-1, 1)),
+                      out=np.zeros_like(b),
+                      where=denominator.reshape((-1, 1)) != 0)
 
     return a, b
 
@@ -191,8 +198,12 @@ def IHMM(t, x, y, threshold, n_iter=10):
 
     a, b = Baum_Welch(A, B, P, O, n_iter=n_iter)
 
-    print(f'Original probabilistic parameters: \nA = \n{A}\nB = \n{B}')
-    print(f'Re-estimated probabilistic parameters: \nA = \n{a}\nB = \n{b}')
+    print(f'Original probabilistic parameters: \nA = \n{A}\nB = \n{B}\n')
+    print(f'Re-estimated probabilistic parameters: \nA = \n{a}\nB = \n{b}\n')
+
+    if (np.count_nonzero(a) == 0) and (np.count_nonzero(b) == 0):
+        a, b = A, B
+        print('Re-estimation failed! Returning to original parameters.\n')
 
     # Decoding
     _, S, _ = Viterbi(a, b, P, O)

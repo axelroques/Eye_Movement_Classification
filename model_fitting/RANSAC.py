@@ -1,6 +1,5 @@
 
-from .sigmoid_fit import initial_guess, sigmoid
-from .fit import fit
+from .sigmoid_fit import initial_guess, sigmoid, fit
 
 import numpy as np
 
@@ -22,6 +21,124 @@ class Sample():
         self.CL = 0
 
 
+class Subset():
+    """
+    Simple class for a subset.
+    Stores the t, x and y information for each sample in the subset.
+    """
+
+    def __init__(self, subset):
+
+        # Sample parameters
+        self.subset = subset
+        self.n = len(subset)
+        self.t = np.array([sample.t for sample in subset])
+        self.x = np.array([sample.x for sample in subset])
+        self.y = np.array([sample.y for sample in subset])
+
+        # Curve fitting parameters
+        self.GOF = {
+            'RMSE_x': [],
+            'RMSE_y': [],
+            'CD_x': [],
+            'CD_y': []
+        }
+
+    def get_fit(self, popt_x, popt_y):
+        """
+        Computes the fit of the subset using the resulting fit paramers.
+        """
+
+        self.popt_x = popt_x
+        self.popt_y = popt_y
+        self.x_fit = sigmoid(self.t, *popt_x)
+        self.y_fit = sigmoid(self.t, *popt_y)
+
+        return
+
+    def compute_GOF(self):
+        """
+        Goodness of fit computation:
+            - RMSE
+            - Pearson correlation distance (CD)
+
+        Also stores the results of the fit for each subset.
+        """
+
+        RMSE_x = np.sqrt(np.sum((self.x-self.x_fit)**2)/self.n)
+        RMSE_y = np.sqrt(np.sum((self.y-self.y_fit)**2)/self.n)
+
+        CD_x = (1-(np.cov(self.x, self.x_fit) /
+                   np.std(self.x)/np.std(self.x_fit)))/2
+        CD_y = (1-(np.cov(self.y, self.y_fit) /
+                   np.std(self.y)/np.std(self.y_fit)))/2
+
+        self.GOF['RMSE_x'].append((RMSE_x))
+        self.GOF['RMSE_y'].append((RMSE_y))
+        self.GOF['CD_x'].append(CD_x)
+        self.GOF['CD_y'].append(CD_y)
+
+        return
+
+    def update_CL(self):
+        """
+        Updates each sample's CL.
+
+        For each sample, compute the difference between its value and the value
+        of the fit. Then, order the samples in increasing order of difference.
+        Finally, each sample is assigned a CL based on their order, ranging from 0  
+        for the sample with a value closest to its fit to 1 for the sample with a 
+        value the further away to its fit.   
+        """
+
+        # Compute the difference between the value and the fit
+        differences = np.zeros(len(self.subset))
+        for i, sample in enumerate(self.subset):
+
+            diff_x = abs(self.x_fit[i]-sample.x)
+            diff_y = abs(self.y_fit[i]-sample.y)
+            differences[i] = diff_x + diff_y
+
+        # Normalize the differences and order the samples
+        differences /= np.max(differences)
+        i_sorted = np.argsort(differences)
+        CL_values = np.linspace(0, 1, 11, endpoint=True)
+        binning = np.digitize(differences, CL_values, right=True)
+
+        # Assign CL
+        for i in i_sorted:
+            self.subset[i].CL += CL_values[binning[i]-1]
+
+        return
+
+    def plot_fit(self, t):
+        """
+        Plots the eye trace vs. the Sigmoid fit.
+        """
+
+        import matplotlib.pyplot as plt
+
+        _, ax = plt.subplots(figsize=(15, 8))
+
+        ax.scatter(self.t+t[0], self.x, c='royalblue', alpha=0.8, s=40,
+                   facecolors='none', edgecolors='orchid', label='x')
+        ax.plot(self.t+t[0], self.x_fit, c='royalblue',
+                alpha=0.8, label='x fit')
+        ax.scatter(self.t+t[0], self.y, c='crimson', alpha=0.8, s=40,
+                   facecolors='none', edgecolors='orchid', label='y')
+        ax.plot(self.t+t[0], self.y_fit, c='crimson',
+                alpha=0.8, label='y fit')
+
+        ax.set_title('Eye position', fontsize=19)
+        ax.set_xlabel('Time (s)', fontsize=15)
+        ax.set_ylabel('Angle (°)', fontsize=15)
+
+        ax.legend()
+        plt.show()
+
+        return
+
+
 class RANSAC():
     """
     Random Sample Consensus class.
@@ -31,81 +148,79 @@ class RANSAC():
     def __init__(self, timestamps, x_samples, y_samples, outlier_proba):
 
         self.n = len(timestamps)
-        self.t = timestamps
+        self.t = timestamps - timestamps[0]
         self.x = x_samples
         self.y = y_samples
 
         # Assign each sample to a Sample class
         self.samples = [Sample(t, x, y)
-                        for t, x, y in zip(timestamps, x_samples, y_samples)]
+                        for t, x, y in zip(self.t, x_samples, y_samples)]
 
         # Outlier parameters
         self.outlier_proba = outlier_proba
         self.n_outliers = self.estimate_outliers()
 
-        # Curve fitting parameters
-        self.GOF = {
-            'RMSE_x': [],
-            'RMSE_x': [],
-            'CD_x': [],
-            'CD_y': []
-        }
-        self.x_fit = []
-        self.y_fit = []
-
     def estimate_outliers(self):
         """
         Estimates the number of outliers using the outlier_proba parameter.
         """
-        return int(self.outlier_proba*len(self.n)) + 1
+        return int(self.outlier_proba*self.n) + 1
 
     def generate_subsets(self):
         """
-        Generates a list of every possible subset of n-n_outliers samples.
+        RANSAC method of selecting samples.
+
+        Here we impose that all subsets generated did not have two successive samples 
+        removed.
+        The number of subsets created is only a portion of the combinations of
+        n-n_outliers subsets possible. We make sure that this selection is sufficiently 
+        large to be statistically sure (with 90% confidence) that it contains a subset 
+        free of outliers (see Fischler & Bolles, 1981).
         """
 
-        self.subsets = [[self.samples[:i]+self.samples[i+2:]]
-                        for i in range(self.n-1)] + [[self.samples[1:-1]]]
+        def prune_subset(indices):
+            """
+            Prunes the subsets: checks whether the input indices are successive or not.
+            If they are successive, the function returns False and the subset
+            is not kept. If they are not, the function returns True and the 
+            subset is stored.
+            """
 
-        return
+            # Difference in indices
+            diff = np.diff(np.sort(choice))
 
-    def compute_GOF(self, x_bar, y_bar):
-        """
-        Goodness of fit computation:
-            - RMSE
-            - Pearson correlation distance (CD)
+            # If there is a 1 in diff, at least two deletion were successive samples
+            if np.any(diff == 1):
+                return False
 
-        Also stores the results of the fit for each subset.
-        """
+            else:
+                return True
 
-        RMSE_x = np.sqrt(np.sum((self.x-x_bar)**2)/self.n)
-        RMSE_y = np.sqrt(np.sum((self.y-y_bar)**2)/self.n)
+        # Max selections (see Fischler & Bolles, 1981)
+        k = int(np.log(0.1)/np.log(1-np.power(1-self.outlier_proba,
+                                              self.n-self.n_outliers))) + 1
 
-        CD_x = (1-(np.cov(self.x, x_bar)/np.std(self.x)/np.std(x_bar)))/2
-        CD_y = (1-(np.cov(self.y, y_bar)/np.std(self.y)/np.std(y_bar)))/2
+        print('k =', k)
 
-        self.GOF['RMSE_x'].append((RMSE_x))
-        self.GOF['RMSE_y'].append((RMSE_y))
-        self.GOF['CD_x'].append(CD_x)
-        self.GOF['CD_y'].append(CD_y)
+        # Subset generation process
+        i = 0
+        subsets = []
+        while i < k:
 
-        self.x_fit.append(y_bar)
-        self.y_fit.append(y_bar)
+            # Select n_outliers samples to be removed
+            choice = np.random.choice(np.arange(self.n),
+                                      size=self.n_outliers,
+                                      replace=False)
 
-        return
+            # Check if subset is OK
+            if prune_subset(choice):
 
-    def update_CL(self):
-        """
-        Updates each sample's CL.
-        """
-        for sample, x_fit, y_fit in zip(self.samples, self.x_fit, self.y_fit):
+                # Create subset without these two samples
+                subsets.append(Subset([self.samples[i]
+                                       for i in range(self.n) if i not in choice]))
+                i += 1
 
-            # Confidence interval on the y_fit distribution
-            # TO DO
-
-            # CL computation
-            # TO DO
-            sample.CL += y_fit-sample.y
+        self.subsets = subsets
 
         return
 
@@ -147,7 +262,7 @@ def remove_outliers(t, x, y, outlier_proba):
     """
 
     # Initializing RANSAC instance
-    ransac = RANSAC(t, y, outlier_proba)
+    ransac = RANSAC(t, x, y, outlier_proba)
 
     # If we potentially have outliers, start the process
     if ransac.n_outliers > 0:
@@ -158,21 +273,29 @@ def remove_outliers(t, x, y, outlier_proba):
         # Iterate over all subsets
         for subset in ransac.subsets:
 
-            # Retrieve values from subset
-            t_sub = np.array([sample.t for sample in subset])
-            x_sub = np.array([sample.x for sample in subset])
-            y_sub = np.array([sample.x for sample in subset])
-
             # Curve fitting
-            x0 = initial_guess(t_sub)
-            x_bar = fit(t_sub, x_sub, x0, fun=sigmoid)
-            y_bar = fit(t_sub, y_sub, x0, fun=sigmoid)
+            try:
+                p0 = initial_guess(t, subset.x)
+                popt_x = fit(subset.t, subset.x, p0, fun=sigmoid)
+                p0 = initial_guess(t, subset.y)
+                popt_y = fit(subset.t, subset.y, p0, fun=sigmoid)
 
-            # GOF computation
-            ransac.compute_GOF(ransac, x_bar, y_bar)
+                # Store fit results
+                subset.get_fit(popt_x, popt_y)
 
-            # Update sample confidence level
-            ransac.update_CL()
+                # Optional plot
+                # subset.plot_fit(t)
+
+                # GOF computation
+                subset.compute_GOF()
+
+                # Update sample confidence level
+                subset.update_CL()
+
+            # If model does not converge
+            except (RuntimeError, RuntimeWarning):
+                print('\tOptimal parameters not found, skipping this subset.')
+                continue
 
         ransac.prune()
 

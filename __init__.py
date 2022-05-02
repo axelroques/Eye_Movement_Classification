@@ -1,5 +1,6 @@
 
 from nslr_hmm.nslr_hmm import NSLR_HMM
+from model_fitting.isf import ISF
 from i2mc.i2mc import I2MC
 from ihmm import IHMM
 from imst import IMST

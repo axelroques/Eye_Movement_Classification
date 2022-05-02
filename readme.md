@@ -40,6 +40,8 @@ First described in _Salvucci and Goldberg (2000)_. The I-MST is a dispersion-bas
 
 First described in _Salvucci and Goldberg (2000)_. The first stage of the I-HMM is identical to I-VT, where each eye position sample is classified either as a fixation or a saccade depending on the velocity threshold. Second stage is defined by the Viterbi Sampler (_Forney (1973)_), where each eye position can be re-classified, depending on the probabilistic parameters (initial state, state transition and observation probability distributions) of the model. The goal of the Viterbi Sampler is to maximize the probability of the state assignment given probabilistic parameters of the model. The initial probabilistic parameters given to I-HMM are not optimal and can be improved. The third stage of the I-HMM is defined by Baum-Welch re-estimation algorithm (_Baum et al. (1970)_). This algorithm re-estimates initial probabilistic parameters and attempts to minimize errors in the state assignments. Parameter re-estimation performed by Baum-Welch can be conducted multiple times. Here, the number of such re-estimations is four.
 
+---
+
 ## Kalman Filter Identification (IKF)
 
 Here, we employ a Two State Kalman Filter (TSKF), first described in _Komogortsev and Khan (2009)_. The TSKF models an eye as a system with two states: position and velocity. The acceleration of the eye is modeled as white noise with fixed maximum acceleration. When applied to the recorded eye position signal the TSKF generates predicted eye velocity signal. The values of the measured and predicted eye velocity allow employing Chi-square test to detect the onset and the offset of a saccade (_Sauter (1991)_).
@@ -70,3 +72,11 @@ Described in _Pekkanen & Lappi (2017)_. It is a classification algorithm for the
 This algorithm introduces the Naive Segmented Linear Regression (NSLR), a new method for eye-movement signal denoising and segmentation. The proposed method is based on the assumption that in most situations the gaze position signal is well approximated by a piecewise linear function, and events correspond to the pieces of such function. The method finds a piecewise linear function that approximately minimizes the approximation error, while taking into account prior knowledge of typical eye movement characteristics.
 
 A full Python implementation of the method is available under an open source license at _https://gitlab.com/nslr/_. This implementation is heavily based on this repository.
+
+---
+
+## Identification by Segmoid Fitting (ISF)
+
+Inspired by _Gibaldi & Sabatini (2020)_ and _Gibaldi et. al. (2015)_. This implementation contains a significant number of deviations or guesses from the original work because the authors did not share many details on their implementation.
+
+This algorithm detects ocular saccades using a model fitting approach. First, the start and end points of each saccade is first roughly estimated using the IVT or IHMM algorithm. Then, using this time window, a better estimate of saccade parameters are found by fitting a sigmoid on the eye movement trace. However, not all points are taken into consideration to fit the model. A Random Sample Consensus (RANSAC) method is used to eliminate potential outliers.

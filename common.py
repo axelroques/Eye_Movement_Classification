@@ -3,14 +3,15 @@
 Basic common functions
 """
 
+import numpy as np
+
 
 def compute_velocity(t, x, y):
 
-    dt, dx, dy = t.diff(), x.diff(), y.diff()
+    dt, dx, dy = np.diff(t), np.diff(x), np.diff(y)
     v_x, v_y = dx/dt, dy/dt
 
-    return v_x.dropna().reset_index(drop=True), \
-        v_y.dropna().reset_index(drop=True)
+    return v_x, v_y
 
 
 def dispersion(x_array, y_array):
