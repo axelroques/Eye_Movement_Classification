@@ -149,6 +149,7 @@ class RANSAC():
 
         self.n = len(timestamps)
         self.t = timestamps - timestamps[0]
+        self.t[0] += 0.00001  # Prevents warnings when fitting the sigmoid
         self.x = x_samples
         self.y = y_samples
 
@@ -200,8 +201,6 @@ class RANSAC():
         k = int(np.log(0.1)/np.log(1-np.power(1-self.outlier_proba,
                                               self.n-self.n_outliers))) + 1
 
-        print('k =', k)
-
         # Subset generation process
         i = 0
         subsets = []
@@ -231,7 +230,7 @@ class RANSAC():
 
         # Get indices of the n_outliers samples with the lowest CL
         CL_list = [sample.CL for sample in self.samples]
-        order = np.argsort(CL_list)[:self.n_outliers]
+        order = np.argsort(CL_list)[-self.n_outliers:]
 
         # Creates a mask set to False for all indices in order
         mask = np.ones_like(self.t, dtype=bool)
