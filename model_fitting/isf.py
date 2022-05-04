@@ -150,8 +150,10 @@ class Saccade():
         return
 
 
-def plot_fix_sacc(t, x, y, indices, n_min):
-
+def plot_saccade_pos(t, x, y, indices, n_min):
+    """
+    Roughly localizes the saccade position on the whole experiment.
+    """
     _, axes = plt.subplots(2, 1, figsize=(15, 8))
 
     for i_start, i_end in zip(indices[::2], indices[1::2]):
@@ -204,7 +206,7 @@ def get_saccades(sacc, t, x, y, n_min):
     indices += [len(sacc)]
 
     # Plot saccades
-    plot_fix_sacc(t, x, y, indices, n_min)
+    plot_saccade_pos(t, x, y, indices, n_min)
 
     return [Saccade(t[i_start:i_end], x[i_start:i_end], y[i_start:i_end])
             for i_start, i_end in zip(indices[::2], indices[1::2])

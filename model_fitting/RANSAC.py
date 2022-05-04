@@ -179,7 +179,7 @@ class RANSAC():
         free of outliers (see Fischler & Bolles, 1981).
         """
 
-        def prune_subset(indices):
+        def prune_subset(choices, choice):
             """
             Prunes the subsets: checks whether the input indices are successive or not.
             If they are successive, the function returns False and the subset
@@ -187,15 +187,24 @@ class RANSAC():
             subset is stored.
             """
 
-            # Difference in indices
-            diff = np.diff(np.sort(choice))
-
-            # If there is a 1 in diff, at least two deletion were successive samples
-            if np.any(diff == 1):
+            # Check if that subset was already randomly picked
+            if tuple(choice) in choices:
                 return False
 
             else:
-                return True
+
+                # Store choice
+                choices.append(tuple(choice))
+
+                # Difference in indices
+                diff = np.diff(choice)
+
+                # If there is a 1 in diff, at least two deletion were successive samples
+                if np.any(diff == 1):
+                    return False
+
+                else:
+                    return True
 
         # Max selections (see Fischler & Bolles, 1981)
         k = int(np.log(0.1)/np.log(1-np.power(1-self.outlier_proba,
@@ -204,15 +213,17 @@ class RANSAC():
         # Subset generation process
         i = 0
         subsets = []
+        choices = []
         while i < k:
 
             # Select n_outliers samples to be removed
             choice = np.random.choice(np.arange(self.n),
                                       size=self.n_outliers,
                                       replace=False)
+            choice = np.sort(choice)
 
             # Check if subset is OK
-            if prune_subset(choice):
+            if prune_subset(choices, choice):
 
                 # Create subset without these two samples
                 subsets.append(Subset([self.samples[i]
