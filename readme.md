@@ -61,7 +61,7 @@ The I2MC algorithm is composed of three separate steps:
 
 **Two means clustering**. A moving window of 200 ms width slides over the gaze position signal. The value of 200 ms was chosen here so that a window generally would contain parts of at most two, and no more, fixations. For each window, a two-means clustering procedure is carried out. Two-means cluster-ing is a variant of k-means clustering where $k = 2$.
 
-**Fixation labelling**. A cutoff is used to determine fixation candidates from the clustering-weight signal. Here we used a cutoff of the mean clustering weight plus two standard deviations. All periods of clustering-weight signal below this cutoff are labeled as fixation candidates, and thereafter consecutive fixation candidates are merged. Finally, short fixation candidates are excluded from the output. Standard values are: merging fixation candidates that were less than $0.7^o$ apart and separated by less than $40 ms$and removing fixations shorter than $40 ms$ were removed.
+**Fixation labelling**. A cutoff is used to determine fixation candidates from the clustering-weight signal. Here we used a cutoff of the mean clustering weight plus two standard deviations. All periods of clustering-weight signal below this cutoff are labeled as fixation candidates, and thereafter consecutive fixation candidates are merged. Finally, short fixation candidates are excluded from the output. Standard values are: merging fixation candidates that were less than $0.7^o$ apart and separated by less than $40$ ms and removing fixations shorter than $40$ ms were removed.
 
 ---
 
