@@ -163,32 +163,33 @@ def clustering_procedure(t, x, y, window_length,
 def plot_clustering_weight(df, df_data, df_processing):
 
     import matplotlib.pyplot as plt
-    _, axes = plt.subplots(4, 1, figsize=(12, 12))
+    _, axes = plt.subplots(3, 1, figsize=(12, 12))
 
     # Plot raw eye signal
     axes[0].plot(df['t'], df['x_l'], alpha=0.5, label=f'Left eye')
     axes[0].plot(df['t'], df['x_r'], alpha=0.5, label=f'Right eye')
     axes[0].plot(df['t'], df['x_avg'], alpha=0.5, label=f'Average')
-    axes[0].set_ylabel('Horizontal eye position', fontsize=15)
+    axes[0].set_ylabel('x', fontsize=15)
     axes[1].plot(df['t'], df['y_l'], alpha=0.5, label=f'Left eye')
     axes[1].plot(df['t'], df['y_r'], alpha=0.5, label=f'Right eye')
     axes[1].plot(df['t'], df['y_avg'], alpha=0.5, label=f'Average')
-    axes[1].set_ylabel('Vertical eye position', fontsize=15)
+    axes[1].set_ylabel('y', fontsize=15)
 
     # Plot cluster weights wrt. downsampling index
-    ds_plot = df_data.loc['avg', :]
-    for i, (t, s) in enumerate(zip(ds_plot.columns.values.tolist()[:-1:2],
-                                   ds_plot.columns.values.tolist()[1::2])):
-        if i < 5:  # To restrict number of curves
-            axes[2].scatter(ds_plot[t], ds_plot[s], s=2,
-                            alpha=0.2, label=f'{t[0]}')
-        axes[2].set_ylabel('Clustering weight')
-        # axes[2].set_xlim((47, 47.2))
+    # ds_plot = df_data.loc['avg', :]
+    # for i, (t, s) in enumerate(zip(ds_plot.columns.values.tolist()[:-1:2],
+    #                                ds_plot.columns.values.tolist()[1::2])):
+    #     if i < 5:  # To restrict number of curves
+    #         axes[2].scatter(ds_plot[t], ds_plot[s], s=2,
+    #                         alpha=0.2, label=f'{t[0]}')
+    #     axes[2].set_ylabel('Clustering weight')
+    # axes[2].set_xlim((47, 47.2))
 
     # Plot processed clustering weight
-    axes[3].plot(df_processing.index.values, df_processing,
+    axes[2].plot(df_processing.index.values, df_processing,
                  alpha=0.8, c='k', ls='--', label=f'Average weight')
-    axes[3].set_ylabel('Clustering weight', fontsize=15)
+    axes[2].set_ylabel('Clustering weight', fontsize=15)
+    axes[2].set_xlabel('Time', fontsize=15)
 
     for ax in axes.ravel():
         ax.legend(fontsize=15, loc='best')
