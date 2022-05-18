@@ -1,6 +1,6 @@
 # Implementation of eye movement classification algorithm
 
-**Based on _Komogortsev et. al. (2009)_.**
+**Inspired by _Komogortsev et. al. (2009)_.**
 
 ---
 
