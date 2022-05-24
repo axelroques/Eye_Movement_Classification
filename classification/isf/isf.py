@@ -59,7 +59,7 @@ class ISF:
         sacc = self.ihmm.saccades
 
         # Clen data by removing NaNs
-        self._clean_data()
+        # self._clean_data()
 
         # Get a list of saccades using the previous rough estimates of
         # saccade position

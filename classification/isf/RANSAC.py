@@ -146,10 +146,10 @@ class RANSAC():
     Contains every sample of interest.
     """
 
-    def __init__(self, timestamps, x_samples, y_samples, outlier_proba):
+    def __init__(self, t, x_samples, y_samples, outlier_proba):
 
-        self.n = len(timestamps)
-        self.t = timestamps - timestamps[0]
+        self.n = len(t)
+        self.t = t - t[0]
         self.t[0] += 0.00001  # Prevents warnings when fitting the sigmoid
         self.x = x_samples
         self.y = y_samples

@@ -209,12 +209,20 @@ class IKF:
 
             # Plot fixations and saccades
             for i in range(len(self.fixations)-1):
+
+                # Color selection
+                if self.fixations[i] == 1:
+                    color = 'royalblue'
+                elif self.saccades[i] == 1:
+                    color = 'crimson'
+                else:
+                    color = 'w'
+
+                # Draw rectangle
                 axes[0].axvspan(self.t[i], self.t[i+1],
-                                color='royalblue' if self.fixations[i] == 1 else 'crimson',
-                                ec=None, alpha=0.4)
+                                color=color, ec=None, alpha=0.4)
                 axes[1].axvspan(self.t[i], self.t[i+1],
-                                color='royalblue' if self.fixations[i] == 1 else 'crimson',
-                                ec=None, alpha=0.4)
+                                color=color, ec=None, alpha=0.4)
 
             for ax in axes:
                 ax.set_xlabel('Time', fontsize=15)
