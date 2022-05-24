@@ -58,9 +58,6 @@ class ISF:
         self.ihmm.process()
         sacc = self.ihmm.saccades
 
-        # Clen data by removing NaNs
-        # self._clean_data()
-
         # Get a list of saccades using the previous rough estimates of
         # saccade position
         self.saccades = self._get_saccades(sacc)
@@ -101,26 +98,6 @@ class ISF:
         print(
             f'\nFinished! {self.n_real_sacc}/{len(self.saccades)} saccades were fitted.'
         )
-
-        return
-
-    def _clean_data(self):
-        """
-        Remove unwanted NaNs in the data.
-
-        This step has to be done after the rough saccade position
-        estimate not to mess with the velocity computation.
-        """
-
-        # NaN positions
-        mask_x = ~np.isnan(self.x)
-        mask_y = ~np.isnan(self.y)
-        mask = mask_x * mask_y
-
-        # Update arrays
-        self.t = self.t[mask]
-        self.x = self.x[mask]
-        self.y = self.y[mask]
 
         return
 
