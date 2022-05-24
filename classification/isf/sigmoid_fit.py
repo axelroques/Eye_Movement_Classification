@@ -65,7 +65,7 @@ def fit(t, y, p0, fun):
     #     popt, _ = curve_fit(f=fun, xdata=t, ydata=y,
     #                         p0=p0, bounds=bounds)
 
-    bounds = ([p0[0]-1, p0[1]-1, p0[2]-0.03, -20],
+    bounds = ([p0[0]-1, p0[1]-1, max(p0[2]-0.03, 0), -20],
               [p0[0]+1, p0[1]+1, p0[2]+0.03, 20])
 
     popt, _ = curve_fit(f=fun, xdata=t, ydata=y,

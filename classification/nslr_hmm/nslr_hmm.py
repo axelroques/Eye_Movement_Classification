@@ -401,14 +401,14 @@ class NSLR_HMM:
 
         for t_start, t_end, c in zip(timestamps[:-1], timestamps[1:], self.seg_classes-1):
             axes[0].axvspan(t_start, t_end, color=colors[c],
-                            ec=None, alpha=0.2)
+                            ec=None, alpha=0.4)
             axes[1].axvspan(t_start, t_end, color=colors[c],
-                            ec=None, alpha=0.2)
+                            ec=None, alpha=0.4)
 
-        axes[0].plot(self.t, self.x, c='grey', alpha=0.7)
+        axes[0].plot(self.t, self.x, c='silver', alpha=0.9)
         axes[0].plot(timestamps, x, c='brown', alpha=0.5)
         axes[0].set_ylabel('x', fontsize=15)
-        axes[1].plot(self.t, self.y, c='grey', alpha=0.7)
+        axes[1].plot(self.t, self.y, c='silver', alpha=0.9)
         axes[1].plot(timestamps, y, c='brown', alpha=0.5)
         axes[1].set_ylabel('y', fontsize=15)
 

@@ -1,6 +1,7 @@
 
 from .sigmoid_fit import initial_guess, sigmoid, fit
 
+from scipy.optimize import OptimizeWarning
 import numpy as np
 
 
@@ -303,8 +304,8 @@ def remove_outliers(t, x, y, outlier_proba):
                 subset.update_CL()
 
             # If model does not converge
-            except (RuntimeError, RuntimeWarning):
-                print('\tOptimal parameters not found, skipping this subset.')
+            except (RuntimeError, RuntimeWarning, OptimizeWarning):
+                # print('\tOptimal parameters not found, skipping this subset.')
                 continue
 
         ransac.prune()

@@ -99,20 +99,20 @@ class I2MC:
             _, axes = plt.subplots(2, 1, figsize=(15, 8))
 
             # Plot eye trace
-            axes[0].plot(self.df['t'], self.df['x_avg'], c='k', alpha=0.8)
+            axes[0].plot(self.df['t'], self.df['x_avg'], c='silver', alpha=0.9)
             axes[0].set_ylabel('x', fontsize=15)
 
-            axes[1].plot(self.df['t'], self.df['y_avg'], c='k', alpha=0.8)
+            axes[1].plot(self.df['t'], self.df['y_avg'], c='silver', alpha=0.9)
             axes[1].set_ylabel('y', fontsize=15)
 
             # Plot fixations and saccades
             for i in range(len(self.fixations)-1):
                 axes[0].axvspan(self.df['t'].iloc[i], self.df['t'].iloc[i+1],
                                 color='royalblue' if self.fixations[i] == 1 else 'crimson',
-                                ec=None, alpha=0.2)
+                                ec=None, alpha=0.4)
                 axes[1].axvspan(self.df['t'].iloc[i], self.df['t'].iloc[i+1],
                                 color='royalblue' if self.fixations[i] == 1 else 'crimson',
-                                ec=None, alpha=0.2)
+                                ec=None, alpha=0.4)
 
             for ax in axes:
                 ax.set_xlabel('Time', fontsize=15)

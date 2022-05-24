@@ -14,9 +14,13 @@ class Saccade():
 
     def __init__(self, t, x, y):
 
+        # Basic parameters
         self.t = t
         self.x = x
         self.y = y
+
+        # Is the saccade real or an artifact?
+        self.is_real = True
 
     def compute_parameters(self, ransac, t, popt_x, popt_y):
         """
@@ -43,8 +47,6 @@ class Saccade():
 
         # 'High definition' parameters
         self.t_HD = np.linspace(self.t[0], self.t[-1], 10*len(self.t))
-        self.x_HD = S(self.t_HD, *self.popt_x)
-        self.y_HD = S(self.t_HD, *self.popt_y)
 
         # Fit computation
         self.x_fit = S(self.t_HD, *popt_x)
@@ -114,12 +116,12 @@ class Saccade():
         _, ax = plt.subplots(figsize=(15, 8))
 
         # Simple plots
-        ax.scatter(self.t, self.x, alpha=0.8, s=40,
-                   facecolors='none', edgecolors='royalblue', label='x')
+        ax.scatter(self.t, self.x, alpha=1, s=60,
+                   facecolors='none', linewidth=1.5, edgecolors='royalblue', label='x')
         ax.plot(self.t_HD, self.x_fit, c='royalblue',
                 alpha=0.8, label='x fit')
-        ax.scatter(self.t, self.y, alpha=0.8, s=40,
-                   facecolors='none', edgecolors='crimson', label='y')
+        ax.scatter(self.t, self.y, alpha=1, s=60,
+                   facecolors='none', linewidth=1.5, edgecolors='crimson', label='y')
         ax.plot(self.t_HD, self.y_fit, c='crimson',
                 alpha=0.8, label='y fit')
 

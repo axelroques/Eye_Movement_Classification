@@ -187,7 +187,7 @@ def plot_clustering_weight(df, df_data, df_processing):
 
     # Plot processed clustering weight
     axes[2].plot(df_processing.index.values, df_processing,
-                 alpha=0.8, c='k', ls='--', label=f'Average weight')
+                 alpha=0.8, c='silver', ls='--', label=f'Average weight')
     axes[2].set_ylabel('Clustering weight', fontsize=15)
     axes[2].set_xlabel('Time', fontsize=15)
 
